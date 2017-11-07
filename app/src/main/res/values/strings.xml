@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Digits</string>
+    <string name="congratulationTitle">Congratulations!</string>
+    <string name="congratulation">You win! Do you want to start from the beginning?</string>
+    <string name="tryAgain">Try again</string>
+    <string name="loseTitle">You lose :(</string>
+    <string name="stepsNum">Number of steps:</string>
+    <string name="newGame">New game</string>
+    <string name="noZero">Without zero</string>
+</resources>
