@@ -7,4 +7,5 @@
     <string name="stepsNum">Количество шагов:</string>
     <string name="newGame">Новая игра</string>
     <string name="noZero">Без нулей</string>
+    <string name="cancel">Отмена</string>
 </resources>

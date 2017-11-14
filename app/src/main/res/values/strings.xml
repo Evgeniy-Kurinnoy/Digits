@@ -7,4 +7,5 @@
     <string name="stepsNum">Number of steps:</string>
     <string name="newGame">New game</string>
     <string name="noZero">Without zero</string>
+    <string name="cancel">Cancel</string>
 </resources>

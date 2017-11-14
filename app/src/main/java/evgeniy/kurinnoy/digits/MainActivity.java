@@ -1,15 +1,14 @@
 package evgeniy.kurinnoy.digits;
 
 import android.content.DialogInterface;
-import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -19,14 +18,17 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<TextView> resNumber = new ArrayList<>(9);
     private CheckBox checkBox;
     private TextView steps;
+    private TextView stepsDetail;
+    private ScrollView scroll;
     private int difficulty = 0;
     private int stepCount = 0;
+    private boolean detailVisible = false;
+    private boolean showDialog = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-       // setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         number.add((TextView)findViewById(R.id.number1));
         number.add((TextView)findViewById(R.id.number2));
         number.add((TextView)findViewById(R.id.number3));
@@ -47,6 +49,20 @@ public class MainActivity extends AppCompatActivity {
         resNumber.add((TextView)findViewById(R.id.resNumber9));
         steps = (TextView)findViewById(R.id.steps);
         checkBox = (CheckBox) findViewById(R.id.difficulty);
+        stepsDetail = (TextView)findViewById(R.id.stepsDetail);
+        scroll = (ScrollView) findViewById(R.id.scrollView2);
+        scroll.setVisibility(View.INVISIBLE);
+        steps.setClickable(true);
+        steps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                detailVisible = !detailVisible;
+                if (detailVisible)
+                    scroll.setVisibility(View.VISIBLE);
+                else
+                    scroll.setVisibility(View.INVISIBLE);
+            }
+        });
         if (savedInstanceState == null) {
             if (checkBox.isChecked())
                 difficulty = 1;
@@ -54,9 +70,13 @@ public class MainActivity extends AppCompatActivity {
                 difficulty = 0;
             generateNum(number);
             generateNum(resNumber);
-            checkProgress();
+            checkProgress(showDialog);
+            steps.setText(R.string.stepsNum);
+            steps.setText(steps.getText() + " 0");
+            for (int i = 0; i < number.size(); i++){
+                stepsDetail.setText(stepsDetail.getText() + number.get(i).getText().toString());
+            }
         }
-
     }
 
     public void buttonUpListener(View v){
@@ -122,15 +142,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     public void newGame(View v){
+        showDialog = true;
         if (checkBox.isChecked())
             difficulty =1;
         else
             difficulty = 0;
         generateNum(number);
         generateNum(resNumber);
-        checkProgress();
+        checkProgress(showDialog);
         stepCount = 0;
         steps.setText("");
+        stepsDetail.setText("");
+        for (int i = 0; i < number.size(); i++){
+            stepsDetail.setText(stepsDetail.getText() + number.get(i).getText().toString());
+        }
+        steps.setText(R.string.stepsNum);
+        steps.setText(steps.getText() + " 0");
     }
     private void generateNum(ArrayList<TextView> tv){
         final Random random = new Random();
@@ -146,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
             tv.get(i).setText("" + (random.nextInt(maxNum) + minNum));
         }
     }
-    private void checkProgress(){
+    private void checkProgress(boolean showDialog1){
         int count = 0;
         for (int i=0; i < number.size(); i++){
             if (number.get(i).getText().equals(resNumber.get(i).getText())) {
@@ -156,23 +183,23 @@ public class MainActivity extends AppCompatActivity {
              else
                 resNumber.get(i).setTextColor(Color.parseColor("#871c1c"));
         }
+        if (showDialog1)
         if (count == 9){
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(R.string.congratulationTitle)
                     .setMessage(R.string.congratulation)
                     .setCancelable(false)
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            showDialog = false;
+                            dialogInterface.cancel();
+                        }
+                    })
                     .setPositiveButton(R.string.tryAgain, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            generateNum(number);
-                            generateNum(resNumber);
-                            checkProgress();
-                            steps.setText("");
-                            stepCount = 0;
-                            if (checkBox.isChecked())
-                                difficulty = 1;
-                            else
-                                difficulty =  0;
+                           newGame(scroll);
                         }
                     });
             AlertDialog alert = builder.create();
@@ -188,18 +215,17 @@ public class MainActivity extends AppCompatActivity {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle(R.string.loseTitle)
                         .setCancelable(false)
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                showDialog = false;
+                                dialogInterface.cancel();
+                            }
+                        })
                         .setPositiveButton(R.string.tryAgain, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                generateNum(number);
-                                generateNum(resNumber);
-                                checkProgress();
-                                steps.setText("");
-                                stepCount = 0;
-                                if (checkBox.isChecked())
-                                    difficulty = 1;
-                                else
-                                    difficulty = 0;
+                                newGame(scroll);
                             }
                         });
                 AlertDialog alert = builder.create();
@@ -209,9 +235,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void numberUP(int index){
+        showDialog = true;
         int currentDigit = Integer.parseInt(number.get(index).getText().toString());
-        if (currentDigit != (index + 1))
-            showStep();
         if (currentDigit == 9)
             number.get(index).setText("" + difficulty);
         else
@@ -225,13 +250,14 @@ public class MainActivity extends AppCompatActivity {
         } catch (IndexOutOfBoundsException e){
 
         }
-
-        checkProgress();
-    }
-    private void numberDOWN(int index){
-        int currentDigit = Integer.parseInt(number.get(index).getText().toString());
         if (currentDigit != (index + 1))
             showStep();
+        checkProgress(showDialog);
+    }
+    private void numberDOWN(int index){
+        showDialog = true;
+        int currentDigit = Integer.parseInt(number.get(index).getText().toString());
+
         if (currentDigit == difficulty)
             number.get(index).setText("" + 9);
         else
@@ -245,14 +271,19 @@ public class MainActivity extends AppCompatActivity {
         } catch (IndexOutOfBoundsException e){
 
         }
-
-        checkProgress();
+        if (currentDigit != (index + 1))
+            showStep();
+        checkProgress(showDialog);
     }
     private void showStep(){
         stepCount++;
         steps.setText(R.string.stepsNum);
         steps.setText(steps.getText().toString() +" " + stepCount);
-
+        stepsDetail.setText(stepsDetail.getText() + " -> ");
+        for (int i = 0; i < number.size(); i++){
+            stepsDetail.setText(stepsDetail.getText() + number.get(i).getText().toString());
+        }
+        scroll.scrollTo(0, scroll.getBottom());
     }
     protected void onSaveInstanceState(Bundle outState){
         super.onSaveInstanceState(outState);
@@ -262,6 +293,9 @@ public class MainActivity extends AppCompatActivity {
         }
         outState.putInt("stepCount", stepCount);
         outState.putInt("difficulty", difficulty);
+        outState.putString("stepsDetail", stepsDetail.getText().toString());
+        outState.putBoolean("detailVisible", detailVisible);
+        outState.putBoolean("showDialog", showDialog);
     }
 
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -272,8 +306,16 @@ public class MainActivity extends AppCompatActivity {
         }
         stepCount = savedInstanceState.getInt("stepCount");
         difficulty = savedInstanceState.getInt("difficulty");
-        checkProgress();
+        showDialog = savedInstanceState.getBoolean("showDialog");
+        checkProgress(showDialog);
         steps.setText(R.string.stepsNum);
         steps.setText(steps.getText().toString() +" " + stepCount);
+        stepsDetail.setText(savedInstanceState.getString("stepsDetail"));
+        detailVisible = savedInstanceState.getBoolean("detailVisible");
+        if (detailVisible)
+            scroll.setVisibility(View.VISIBLE);
+        else
+            scroll.setVisibility(View.INVISIBLE);
     }
+
 }
